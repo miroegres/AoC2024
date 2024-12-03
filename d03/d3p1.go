@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -19,7 +20,8 @@ func absInt(x int) int {
 func main() {
 	startTime := time.Now()
 	filename := "input.txt"
-	safe := 0
+	sum := 0
+	sum2 := 0
 
 	file, err := os.Open(filename)
 	if err != nil {
@@ -29,6 +31,16 @@ func main() {
 	defer file.Close()
 
 	var data [][]int
+	var substrings []string
+	var substrings2 []string
+	addToSubstrings2 := true
+
+	reMul := regexp.MustCompile(`mul\(\d{1,3},\d{1,3}\)`)
+	reDo := regexp.MustCompile(`do\(\)`)
+	reDont := regexp.MustCompile(`don't\(\)`)
+
+	// Regular expression to match "mul(x,y)" where x and y are numbers with 1 to 3 digits
+	re := regexp.MustCompile(`mul\(\d{1,3},\d{1,3}\)`)
 
 	// Read the file line by line
 	scanner := bufio.NewScanner(file)
@@ -43,44 +55,64 @@ func main() {
 			}
 		}
 		data = append(data, row)
+
+		// Find all substrings that match the pattern
+		matches := re.FindAllString(line, -1)
+		substrings = append(substrings, matches...)
+
+		mulMatches := reMul.FindAllString(line, -1)
+		doMatches := reDo.FindAllString(line, -1)
+		dontMatches := reDont.FindAllString(line, -1)
+
+		// Handle "do()" and "don't()"
+		if len(doMatches) > 0 {
+			addToSubstrings2 = true
+		}
+		if len(dontMatches) > 0 {
+			addToSubstrings2 = false
+		}
+
+		// Add "mul(x,y)" to substrings2 based on the current state
+		if addToSubstrings2 {
+			substrings2 = append(substrings2, mulMatches...)
+		}
 	}
 
-	//d1p1
-	// Iterate through each line of the data variable and through each value of the rows
-	for i, row := range data {
-		if len(row) < 2 {
-			continue // Skip rows with less than 2 values
-		}
-
-		grad := 0  // not incr nor decr
-		check := 1 // line seems OK
-		fmt.Printf("Row %d: ", i)
-		fmt.Println(row)
-		for j := 1; j < len(row); j++ {
-			value := row[j]
-			diff := value - row[j-1]
-			if diff > 3 || diff < -3 || diff == 0 {
-				check = 0
-				break
-			}
-			if j == 1 {
-				grad = diff
-			} else {
-				if (grad > 0 && diff < 0) || (grad < 0 && diff > 0) {
-					check = 0
-					break
-				}
+	//d3p1
+	// Iterate through each line of the data and find the mul(x,y) strings
+	for _, substr := range substrings {
+		// Extract numbers from the substring
+		reNumbers := regexp.MustCompile(`\d{1,3}`)
+		numbers := reNumbers.FindAllString(substr, -1)
+		if len(numbers) == 2 {
+			num1, err1 := strconv.Atoi(numbers[0])
+			num2, err2 := strconv.Atoi(numbers[1])
+			if err1 == nil && err2 == nil {
+				sum += num1 * num2
+				//fmt.Printf("Substring: %s, Product: %d\n", substr, product)
 			}
 		}
-		if check == 1 {
-			safe++
-		}
-		fmt.Printf("line %d check=%d\n", i, check)
-		fmt.Println("--------------------------")
 	}
 
-	//fmt.Println(len(column1))
-	fmt.Println("Safe reports: ", safe)
+	//d3p2
+	for _, substr := range substrings2 {
+		// Extract numbers from the substring
+		reNumbers := regexp.MustCompile(`\d{1,3}`)
+		numbers := reNumbers.FindAllString(substr, -1)
+		if len(numbers) == 2 {
+			num1, err1 := strconv.Atoi(numbers[0])
+			num2, err2 := strconv.Atoi(numbers[1])
+			if err1 == nil && err2 == nil {
+				sum2 += num1 * num2
+				//fmt.Printf("Substring: %s, Product: %d\n", substr, product)
+			}
+		}
+	}
+
+	//fmt.Println(substrings)
+	fmt.Println("Sum: ", sum)
+	fmt.Println("Sum2: ", sum2)
+
 	endTime := time.Now()
 	fmt.Println("Cas: ", endTime.Sub(startTime))
 }
