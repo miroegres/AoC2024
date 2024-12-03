@@ -10,13 +10,6 @@ import (
 	"time"
 )
 
-func absInt(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
-}
-
 func main() {
 	startTime := time.Now()
 	filename := "input.txt"
@@ -35,12 +28,11 @@ func main() {
 	var substrings2 []string
 	addToSubstrings2 := true
 
+	// Regular expression to match "mul(x,y)" where x and y are numbers with 1 to 3 digits
+	re := regexp.MustCompile(`mul\(\d{1,3},\d{1,3}\)`)
 	reMul := regexp.MustCompile(`mul\(\d{1,3},\d{1,3}\)`)
 	reDo := regexp.MustCompile(`do\(\)`)
 	reDont := regexp.MustCompile(`don't\(\)`)
-
-	// Regular expression to match "mul(x,y)" where x and y are numbers with 1 to 3 digits
-	re := regexp.MustCompile(`mul\(\d{1,3},\d{1,3}\)`)
 
 	// Read the file line by line
 	scanner := bufio.NewScanner(file)
@@ -56,13 +48,13 @@ func main() {
 		}
 		data = append(data, row)
 
-		// Find all substrings that match the pattern
-		matches := re.FindAllString(line, -1)
-		substrings = append(substrings, matches...)
-
 		mulMatches := reMul.FindAllString(line, -1)
 		doMatches := reDo.FindAllString(line, -1)
 		dontMatches := reDont.FindAllString(line, -1)
+
+		// Find all substrings that match the pattern
+		matches := re.FindAllString(line, -1)
+		substrings = append(substrings, matches...)
 
 		// Handle "do()" and "don't()"
 		if len(doMatches) > 0 {
