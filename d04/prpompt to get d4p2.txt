@@ -1,0 +1,8 @@
+1.read the concent of input_.txt
+2. go through each line starting from second until you are on the one before last
+3. look for character "A", mark on which column and row as [i,j] where i marks row and j marks column. if you find one, condition1 is true
+4. look in the previous line above and if there is M on the position [i-1,j-1] AND if there is look for S on the position [i+1,j+1] if you find both M and S on these positions, the condition2 is true
+5. look for S on the position [i-1,j-1] AND if there is look for M on the position [i+1,j+1] if you find both letters on these positions, the condition3 is true
+6. look in the previous line above and if there is M on the position [i-1,j+1] AND if there is look for S on the position [i+1,j-1] if you find both M and S on these positions, the condition4 is true 7. look for S on the position [i-1,j+1] AND if there is look for M on the position [i+1,j-1] if you find both letters on these positions, the condition5 is true
+8. now evaluate: if condition 1 AND (condition2 OR condition3) AND (condition4 OR condition5) then invrement the counter of pattern occurences
+9. continue with next character from step 2
