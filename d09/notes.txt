@@ -1,0 +1,3 @@
+C:\programming\AoC\advent of code 2024\AoC2024\d09>go run d9p1.go
+Checksum: 88055642995
+Time taken: 6m0.2846639s
