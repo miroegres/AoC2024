@@ -53,7 +53,7 @@ func main() {
 		return
 	}
 
-	for iteration := 1; iteration <= 75; iteration++ {
+	for iteration := 1; iteration <= 25; iteration++ {
 		stones = transformStones(stones)
 		if iteration <= 5 {
 			fmt.Printf("Iteration %d: %v\n", iteration, stones)

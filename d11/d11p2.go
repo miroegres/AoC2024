@@ -1,110 +1,58 @@
 package main
 
 import (
-	"bufio"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
-	"os"
 	"strconv"
-	"strings"
 	"time"
 )
 
-func hashStones(stones []int) string {
-	hash := sha256.New()
-	for _, stone := range stones {
-		hash.Write([]byte(strconv.Itoa(stone)))
-	}
-	return hex.EncodeToString(hash.Sum(nil))
-}
+// Memoization cache
+var memo = make(map[string]int64)
 
-func transformStone(stone int, memo map[int][]int) []int {
-	if val, found := memo[stone]; found {
+// Recursive function to calculate the number of stones after a given number of iterations
+func functionRec(stone int64, iterations int) int64 {
+	// Create a unique key for the memoization cache
+	key := fmt.Sprintf("%d_%d", stone, iterations)
+	if val, found := memo[key]; found {
 		return val
 	}
 
-	var transformed []int
+	if iterations == 0 {
+		return 1
+	}
+
+	var result int64
 	if stone == 0 {
-		transformed = []int{1}
-	} else if len(strconv.Itoa(stone))%2 == 0 {
-		mid := len(strconv.Itoa(stone)) / 2
-		left, _ := strconv.Atoi(strconv.Itoa(stone)[:mid])
-		right, _ := strconv.Atoi(strconv.Itoa(stone)[mid:])
-		transformed = []int{left, right}
+		result = functionRec(1, iterations-1)
+	} else if len(strconv.FormatInt(stone, 10))%2 == 0 {
+		mid := len(strconv.FormatInt(stone, 10)) / 2
+		left, _ := strconv.ParseInt(strconv.FormatInt(stone, 10)[:mid], 10, 64)
+		right, _ := strconv.ParseInt(strconv.FormatInt(stone, 10)[mid:], 10, 64)
+		result = functionRec(left, iterations-1) + functionRec(right, iterations-1)
 	} else {
-		transformed = []int{stone * 2024}
+		result = functionRec(stone*2024, iterations-1)
 	}
 
-	memo[stone] = transformed
-	return transformed
-}
-
-func processChunks(stones []int, memo map[int][]int, cache map[string][]int) []int {
-	chunkSize := 1000
-	var newStones []int
-
-	for i := 0; i < len(stones); i += chunkSize {
-		end := i + chunkSize
-		if end > len(stones) {
-			end = len(stones)
-		}
-		chunk := stones[i:end]
-		hash := hashStones(chunk)
-		if cachedResult, found := cache[hash]; found {
-			newStones = append(newStones, cachedResult...)
-		} else {
-			var transformedChunk []int
-			for _, stone := range chunk {
-				transformedChunk = append(transformedChunk, transformStone(stone, memo)...)
-			}
-			cache[hash] = transformedChunk
-			newStones = append(newStones, transformedChunk...)
-		}
-	}
-
-	return newStones
+	memo[key] = result
+	return result
 }
 
 func main() {
 	startTime := time.Now()
-	filename := "inputT.txt"
 
-	file, err := os.Open(filename)
-	if err != nil {
-		fmt.Println("Error opening file:", err)
-		return
-	}
-	defer file.Close()
+	// Initial stones
+	stones := []int64{814, 1183689, 0, 1, 766231, 4091, 93836, 46}
 
-	var stones []int
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		numbers := strings.Fields(line)
-		for _, num := range numbers {
-			stone, _ := strconv.Atoi(num)
-			stones = append(stones, stone)
-		}
+	// Number of iterations
+	iterations := 75
+
+	// Calculate the total number of stones after the given number of iterations
+	var totalStones int64
+	for _, stone := range stones {
+		totalStones += functionRec(stone, iterations)
 	}
 
-	if err := scanner.Err(); err != nil {
-		fmt.Println("Error reading file:", err)
-		return
-	}
-
-	memo := make(map[int][]int)
-	cache := make(map[string][]int)
-
-	for iteration := 1; iteration <= 75; iteration++ {
-		stones = processChunks(stones, memo, cache)
-
-		if iteration <= 8 {
-			fmt.Printf("Iteration %d: %v\n", iteration, stones)
-		} else {
-			fmt.Printf("Iteration %d: Number of stones = %d\n", iteration, len(stones))
-		}
-	}
+	fmt.Printf("Number of stones after %d iterations: %d\n", iterations, totalStones)
 
 	endTime := time.Now()
 	fmt.Println("Time taken: ", endTime.Sub(startTime))
